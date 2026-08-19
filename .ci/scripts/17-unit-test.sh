@@ -9,7 +9,7 @@ cd "$TARGET_DIR"
 if [ -f package.json ]; then
   require_cmd_or_skip npm "npm not installed"
   require_npm_script_or_skip test
-  if ! npm run test -- --ci; then
+  if ! CI=true npm run test; then
     fail_check "Test suite reported failures"
   fi
   pass_check "All tests passed"
