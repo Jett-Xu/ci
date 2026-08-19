@@ -9,61 +9,117 @@
 ### 方式一:直接執行 entrypoint.sh
 
 ```bash
-.ci/entrypoint.sh /path/to/your-project
+git clone https://github.com/Jett-Xu/ci.git ~/tools/ci-checker
+```
+
+```bash
+~/tools/ci-checker/.ci/entrypoint.sh /path/to/your-project
 ```
 
 不帶參數時,預設檢查目前所在的工作目錄:
 
 ```bash
 cd /path/to/your-project
-/path/to/ci-repo/.ci/entrypoint.sh
+~/tools/ci-checker/.ci/entrypoint.sh
 ```
 
-也可以用環境變數指定目標目錄(優先權高於參數):
+用環境變數指定目標目錄(優先權高於參數):
 
 ```bash
-TARGET_DIR=/path/to/your-project .ci/entrypoint.sh
+TARGET_DIR=/path/to/your-project ~/tools/ci-checker/.ci/entrypoint.sh
 ```
 
-預設是「一旦有任何一項 FAIL,立刻停止」(fail-fast)。如果想讓所有檢查都跑完、最後一次看完整報告:
+跑完所有檢查、不因為第一個 FAIL 就停:
 
 ```bash
-CI_FAIL_FAST=false .ci/entrypoint.sh /path/to/your-project
+CI_FAIL_FAST=false ~/tools/ci-checker/.ci/entrypoint.sh /path/to/your-project
 ```
 
-### 方式二:寫進 package.json 的 scripts
+### 方式二:git clone 進專案內,寫進 package.json 的 scripts
 
-把 `.ci/` 資料夾複製進你的前端/Node 後端專案根目錄後,可以這樣接:
-
-**做法 A——獨立的 `ci` script,自己決定何時跑(建議)**
+```bash
+git clone https://github.com/Jett-Xu/ci.git ci-tools
+```
 
 ```json
 {
   "scripts": {
-    "build": "vite build",
-    "ci": "bash .ci/entrypoint.sh ."
+    "ci": "bash ci-tools/.ci/entrypoint.sh ."
   }
 }
 ```
 
-本機開發用 `npm run build` 不會被擋,需要驗證時手動 `npm run ci`;CI 平台(GitHub Actions 等)則明確呼叫 `npm run ci`。
+```bash
+npm run ci
+```
 
-**做法 B——掛在 build 前自動觸發**
+### 方式三:npx
 
-npm 支援 `pre<script>` 慣例,`prebuild` 會在 `npm run build` 之前自動執行:
+```bash
+npx github:Jett-Xu/ci /path/to/your-project
+```
+
+```bash
+CI_FAIL_FAST=false npx github:Jett-Xu/ci /path/to/your-project
+```
 
 ```json
 {
   "scripts": {
-    "prebuild": "bash .ci/entrypoint.sh .",
+    "ci": "npx github:Jett-Xu/ci ."
+  }
+}
+```
+
+### 方式四:npm install --save-dev
+
+```bash
+npm install --save-dev github:Jett-Xu/ci
+```
+
+鎖定特定 tag/commit:
+
+```bash
+npm install --save-dev github:Jett-Xu/ci#v1.0.0
+```
+
+```json
+{
+  "devDependencies": {
+    "ci-check": "github:Jett-Xu/ci"
+  },
+  "scripts": {
+    "ci": "ci-check ."
+  }
+}
+```
+
+```bash
+npm run ci
+```
+
+掛進 `npm run build`,先驗證再 build——用 `pre<script>` 慣例:
+
+```json
+{
+  "scripts": {
+    "ci": "ci-check .",
+    "prebuild": "npm run ci",
     "build": "vite build"
   }
 }
 ```
 
-`npm run build` 就會自動先跑完整套 CI 驗證,沒過(exit 1)不會繼續 build。缺點是本機開發也會被拖慢(SCA/SAST 這類檢查通常比較久),所以一般建議用做法 A,只在 CI 平台上才強制跑。
+或直接串在同一行:
 
-> Windows 環境下 `bash` 需要在 PATH 裡(Git for Windows 安裝後預設就有)。純 Linux/macOS CI runner 通常也是 bash 環境,不需要額外設定。
+```json
+{
+  "scripts": {
+    "ci": "ci-check .",
+    "build": "npm run ci && vite build"
+  }
+}
+```
 
 ### 常用環境變數
 
@@ -141,6 +197,7 @@ npm 支援 `pre<script>` 慣例,`prebuild` 會在 `npm run build` 之前自動�
   - PASS 或 SKIP 都是 exit **0**(不擋 CI),
   - 只有真的執行且找到問題才是 exit **1**(嚴格、零容忍)。
 - `.ci/scripts/lib/common.sh` — 共用 bash helper:`ci_pass`/`ci_fail`/`ci_skip`、`skip_check`/`fail_check`/`pass_check`、`has_cmd`/`has_dep`/`has_npm_script`、`require_cmd_or_skip`(缺獨立執行檔時 SKIP)、`require_dep_or_skip`(缺 npm 套件時 SKIP)、`require_npm_script_or_skip`(缺 package.json script 時 SKIP)。
+- `package.json` + `bin/ci-check.js` — 讓 `npx github:Jett-Xu/ci` 可以直接執行。`ci-check.js` 只是一個 Node wrapper,實際邏輯還是呼叫 `.ci/entrypoint.sh`;之所以需要這層包裝,是因為 `npx` 的 bin 進入點在 Windows 上必須是 Node 可執行的檔案,不能直接指向 `.sh`。
 
 ## Adding a new check
 
