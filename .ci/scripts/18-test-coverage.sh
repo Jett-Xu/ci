@@ -20,6 +20,12 @@ is_jest_project() {
 if [ -f package.json ] && is_vitest_project; then
   require_cmd_or_skip npx "npx not available, cannot run coverage"
   require_dep_or_skip vitest
+  # Vitest doesn't bundle a coverage engine — it needs a separate provider
+  # package. Without one, `vitest --coverage` prompts interactively to
+  # install it, which would hang here instead of skipping cleanly.
+  if ! has_dep '@vitest/coverage-v8' && ! has_dep '@vitest/coverage-istanbul'; then
+    skip_check "缺少套件 \"@vitest/coverage-v8\"(或 @vitest/coverage-istanbul)(尚未安裝於 node_modules),略過覆蓋率檢查"
+  fi
   if ! npx --no-install vitest run --coverage \
       --coverage.thresholds.lines="${THRESHOLD}" \
       --coverage.thresholds.functions="${THRESHOLD}" \
