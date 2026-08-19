@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Item: Header License Notice
 // Strict: every .ts/.go/.py source file must start with the company copyright header.
-// Opt-in: only runs when CI_COPYRIGHT_NOTICE is set. A project that doesn't
+// Opt-in: only runs when CI_COMPANY_COPYRIGHT_NOTICE is set. A project that doesn't
 // require copyright headers just never sets it, and this check SKIPs.
 'use strict';
 const fs = require('fs');
@@ -11,7 +11,7 @@ const TARGET_DIR = process.env.TARGET_DIR || process.cwd();
 const EXTS = new Set(['.ts', '.tsx', '.go', '.py']);
 const IGNORE_DIRS = new Set(['node_modules', '.git', 'dist', 'build', '.ci', 'vendor']);
 
-const NOTICE = process.env.CI_COPYRIGHT_NOTICE;
+const NOTICE = process.env.CI_COMPANY_COPYRIGHT_NOTICE;
 
 function skip(reason) {
   console.error(`[SKIP] ${reason}`);
@@ -27,7 +27,7 @@ function pass(reason) {
 }
 
 if (!NOTICE) {
-  skip('CI_COPYRIGHT_NOTICE not set — this project does not require copyright headers');
+  skip('CI_COMPANY_COPYRIGHT_NOTICE not set — this project does not require copyright headers');
 }
 
 if (!fs.existsSync(TARGET_DIR)) {

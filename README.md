@@ -127,7 +127,7 @@ npm run ci
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `TARGET_DIR`                          | 要檢查的專案路徑,優先權高於位置參數                                                                                                 |
 | `CI_FAIL_FAST`                        | 設為 `false` 時,跑完所有檢查再統一回報失敗清單,而不是碰到第一個 FAIL 就停(預設 `true`)                                              |
-| `CI_COPYRIGHT_NOTICE`                 | [28-license-header.js](.ci/scripts/28-license-header.js) 要求每個 `.ts`/`.go`/`.py`/`.tsx` 檔案開頭必須包含的文字(預設 `Copyright`) |
+| `CI_COMPANY_COPYRIGHT_NOTICE`         | [28-license-header.js](.ci/scripts/28-license-header.js) 要求每個 `.ts`/`.go`/`.py`/`.tsx` 檔案開頭必須包含的版權宣告文字;不設定則此檢查 SKIP |
 | `CI_LOCALES_DIR`, `CI_PRIMARY_LOCALE` | [07-i18n-check.js](.ci/scripts/07-i18n-check.js) 的多語系資料夾與主語言(預設 `locales`、`en`)                                       |
 | `CI_OPENAPI_BASE`, `CI_OPENAPI_PR`    | [19-api-contract.sh](.ci/scripts/19-api-contract.sh) 要比對的 OpenAPI spec 檔(預設 `openapi-base.yaml`、`openapi-pr.yaml`)          |
 | `CI_DB_COMPOSE`                       | [20-db-migration.sh](.ci/scripts/20-db-migration.sh) 用來啟動測試資料庫的 docker-compose 檔(預設 `.ci/db.yml`)                      |
@@ -150,7 +150,7 @@ npm run ci
 | [25 Commit Message 規範](.ci/scripts/25-commit-message.sh)        | Conventional Commits + JIRA 單號                           | 需為 git repo;有 `commitlint` 設定就用它,否則用內建 regex(無額外依賴)                      | SKIP「非 git repo」                               |
 | [26 PR Template 檢查](.ci/scripts/26-pr-template.js)              | PR 描述字數門檻 + checklist 全勾                           | 環境變數 `PR_BODY` 或 `CI_PR_BODY_FILE`(由 CI 平台帶入)                                    | SKIP「沒有 PR body,不在 PR context 裡」           |
 | [27 Supply Chain / Typosquatting](.ci/scripts/27-supply-chain.sh) | 偵測疑似模仿知名套件的惡意套件名                           | 有 `socket` CLI 就用它,否則用內建 Levenshtein heuristic(無額外依賴,僅比對約 30 個知名套件) | 內建 heuristic 一律會跑;無 `package.json` 才 SKIP |
-| [28 Header License Notice](.ci/scripts/28-license-header.js)      | 每個 `.ts`/`.tsx`/`.go`/`.py` 檔頭要有版權宣告             | 選配,預設不開:需設定 `CI_COPYRIGHT_NOTICE` 才會啟用比對                                    | SKIP「未設定 `CI_COPYRIGHT_NOTICE`」              |
+| [28 Header License Notice](.ci/scripts/28-license-header.js)      | 每個 `.ts`/`.tsx`/`.go`/`.py` 檔頭要有版權宣告             | 選配,預設不開:需設定 `CI_COMPANY_COPYRIGHT_NOTICE` 才會啟用比對                            | SKIP「未設定 `CI_COMPANY_COPYRIGHT_NOTICE`」      |
 | [29 Git History Hygiene](.ci/scripts/29-git-history.sh)           | 禁止 >5MB 大檔進歷史、禁止殘留 merge conflict 標記         | 需為 git repo;有 `git-sizer` 就用它,否則用內建邏輯(無額外依賴)                             | SKIP「非 git repo」                               |
 | [30 Environment / Node Version](.ci/scripts/30-env-version.sh)    | 本機/CI runtime 版本需與 `.nvmrc`/`.python-version` 一致   | 對應版本檔存在時才檢查;`node`/`python3` 需在 PATH                                          | SKIP「找不到版本檔」                              |
 
